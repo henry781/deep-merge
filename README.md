@@ -1,4 +1,5 @@
 # deep-merge
+[![Build Status](https://travis-ci.com/henry781/deep-merge.svg?branch=master)](https://travis-ci.com/henry781/deep-merge)
 
 Deep merge allows to merge with context.
 ```
