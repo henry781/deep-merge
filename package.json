@@ -1,6 +1,6 @@
 {
   "name": "@henry781/deep-merge",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "",
   "main": "dist/api.js",
   "typings": "dist/api.d.ts",
