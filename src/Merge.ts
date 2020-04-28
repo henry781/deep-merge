@@ -160,7 +160,7 @@ export class Merge {
 
               debug && options.logger.log('Merge [' + securityMergeMyID + ']'
                 + this.mergeDebugIteration(iterationNumber) + ' ' + p + ':' + obj2[p]);
-              const overrideProp = Merge.notNullNotUndefined(obj1[p]) && Merge.notNullNotUndefined(obj2[p]);
+              const overrideProp = Merge.notNullNotUndefined(obj1[p]);
               obj1[p] = obj2[p];
               this.contextualizeMerge(obj2, p, obj1, p, options, overrideProp);
 

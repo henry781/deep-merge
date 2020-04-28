@@ -26,6 +26,26 @@ describe('Merge', () => {
       chai.expect(obj2).to.deep.equal(expectedObj2);
     });
 
+    it('should the "merge" and override property with null', () => {
+
+      const obj1 = {
+        a: 'b',
+        enabled: true,
+      };
+
+      const obj2 = {
+        enabled: null,
+      };
+
+      const r = {};
+      Merge.merge(r, obj1, {context: 'obj1'});
+      Merge.merge(r, obj2, {context: 'obj2'});
+      chai.expect(r['enabled']).is.null;
+      chai.expect(r['_context']['enabled']).is.equal('obj2');
+      chai.expect(r['a']).is.equal('b');
+      chai.expect(r['_context']['a']).is.equal('obj1');
+    });
+
     it('should the "merge" overrides one property from obj2 into obj1', () => {
       const obj1 = {
         A: 'A obj1',
