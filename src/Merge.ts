@@ -35,10 +35,6 @@ export class Merge {
     return Object.keys(obj).length;
   }
 
-  private static notNullNotUndefined(obj) {
-    return obj !== null && obj !== undefined;
-  }
-
   private static mergeDebugIteration(iterationNumber) {
     let txt = '|';
     for (let i = 0; i <= iterationNumber; i++) {
@@ -142,36 +138,33 @@ export class Merge {
 
               // copy the current property of obj2 into obj1
               obj1.push(obj2[p]);
-              this.contextualizeMerge(obj2, p, obj1, `${obj1.length - 1}`, options, false);
+              this.contextualizeMerge(obj2, p, obj1, `${obj1.length - 1}`, options);
 
             } else if (obj2[p] !== null && obj2[p] !== undefined && obj2[p] instanceof Object && options.deep) {
               // current property is an object and we want deep merge
 
               debug && options.logger.log('Merge [' + securityMergeMyID + ']' + this.mergeDebugIteration(iterationNumber) + ' ' + p + ':');
 
-              const overrideProp = obj1[p] !== undefined && obj1[p] !== null;
               const res = this.processMerge(obj1[p], obj2[p], options, securityMergeMyID,
                 iterationNumber + 1);
               obj1[p] = res;
-              this.contextualizeMerge(res, p, obj1, p, options, overrideProp);
+              this.contextualizeMerge(res, p, obj1, p, options);
 
             } else {
               // other case : erase prop without deep merge
 
               debug && options.logger.log('Merge [' + securityMergeMyID + ']'
                 + this.mergeDebugIteration(iterationNumber) + ' ' + p + ':' + obj2[p]);
-              const overrideProp = Merge.notNullNotUndefined(obj1[p]);
               obj1[p] = obj2[p];
-              this.contextualizeMerge(obj2, p, obj1, p, options, overrideProp);
+              this.contextualizeMerge(obj2, p, obj1, p, options);
 
             }
           } catch (e) {
 
             options.logger.error(`MergeUtils [${securityMergeMyID}] something has failed:`, e);
             // Property in destination object not set; create it and set its value.
-            const overrideProp = !!obj1[p] && !!obj2[p];
             obj1[p] = obj2[p];
-            this.contextualizeMerge(obj2, p, obj1, p, options, overrideProp);
+            this.contextualizeMerge(obj2, p, obj1, p, options);
           }
         }
       }
@@ -181,35 +174,34 @@ export class Merge {
     return obj1;
   }
 
-  private static contextualizeMerge(src: any, srcKey: string, dest: any, destKey: string, options: MergeOptions, override: boolean) {
-    if (options.context && dest) {
-      // dest has no property '_context', so create it
-      if (!dest.hasOwnProperty('_context')) {
-        Object.defineProperty(dest.prototype ? dest.prototype : dest, '_context', {
+  private static contextualizeMerge(obj2: any, obj2Key: string, obj1: any, obj1Key: string, options: MergeOptions) {
+    if (options.context && obj1) {
+
+      // obj1 has no property '_context', so create it
+      if (!obj1.hasOwnProperty('_context')) {
+        Object.defineProperty(obj1.prototype ? obj1.prototype : obj1, '_context', {
           enumerable: false,
           value: {},
         });
       }
 
-      const destGetMergeContextOf = dest._context;
-      const srcGetMergeContextOf = src._context;
+      const obj1GetMergeContextOf = obj1._context;
+      const obj2GetMergeContextOf = obj2._context;
 
-      const srcHasNoContext = (!srcGetMergeContextOf || !srcGetMergeContextOf.hasOwnProperty(`${destKey}`));
-      const destHasNoContext = !destGetMergeContextOf.hasOwnProperty(`${destKey}`);
+      const obj2HasNoContext = (!obj2GetMergeContextOf || !obj2GetMergeContextOf.hasOwnProperty(`${obj1Key}`));
 
-      // dest and src object has no getContext for the current property OR we want to override dest with a new context
-      if ((srcHasNoContext && destHasNoContext) || override) {
-        const o = destGetMergeContextOf.prototype ? destGetMergeContextOf.prototype : destGetMergeContextOf;
-        Object.defineProperty(o, `${destKey}`, {
+      const o = obj1GetMergeContextOf.prototype ? obj1GetMergeContextOf.prototype : obj1GetMergeContextOf;
+      if (obj2HasNoContext) {
+        Object.defineProperty(o, `${obj1Key}`, {
           configurable: true,
           enumerable: false,
           value: options.context,
         });
+
       } else {
-        // src object has already context, copy it
-        const descriptor = Object.getOwnPropertyDescriptor(src._context, `${destKey}`);
-        const o = destGetMergeContextOf.prototype ? destGetMergeContextOf.prototype : destGetMergeContextOf;
-        Object.defineProperty(o, `${destKey}`, {
+        // obj2 object has already context, copy it
+        const descriptor = Object.getOwnPropertyDescriptor(obj2._context, `${obj1Key}`);
+        Object.defineProperty(o, `${obj1Key}`, {
           configurable: true,
           enumerable: false,
           value: descriptor.value,
