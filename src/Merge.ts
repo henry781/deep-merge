@@ -3,6 +3,7 @@ export interface MergeOptions {
   arrayMode?: 'concat' | 'index' | 'reference';
   deep?: boolean;
   allowUndefined?: boolean;
+  securityNbDeepMax?: number;
   logger?: {
     log: (...args) => void,
     error: (...args) => void,
@@ -25,6 +26,7 @@ export class Merge {
     options.deep = options.deep === undefined ? true : options.deep;
     options.arrayMode = options.arrayMode === undefined ? 'index' : options.arrayMode;
     options.logger = options.logger ? options.logger : console;
+    options.securityNbDeepMax = options.securityNbDeepMax ? options.securityNbDeepMax : 10000;
     return this.processMerge(obj1, obj2, options);
   }
 
@@ -65,7 +67,6 @@ export class Merge {
 
     const debug = false;
     // prevent too much loops
-    const securityNbDeepMax = 1000;
     if (!securityMergeMyID) {
       this.safetyMergeNbID++;
       securityMergeMyID = ((Math.random() + '').substring(2));
@@ -77,7 +78,7 @@ export class Merge {
       this.safetyNbDeepCurrent[this.safetyMergeNbID] = 0;
     }
     this.safetyNbDeepCurrent[this.safetyMergeNbID]++;
-    if (this.safetyNbDeepCurrent[this.safetyMergeNbID] >= securityNbDeepMax) {
+    if (this.safetyNbDeepCurrent[this.safetyMergeNbID] >= options.securityNbDeepMax) {
       options.logger.error('Merge [' + securityMergeMyID + ']' + this.mergeDebugIteration(iterationNumber) +
         'stopping merge because of too much whiles (' + this.safetyNbDeepCurrent[this.safetyMergeNbID] + ')');
       return obj1;
